@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: projectbanking
+
+  datasource:
+    url: jdbc:h2:mem:bankdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui/index.html
+    config-url: ""  # ⚡ отключаем remote config, чтобы не было ошибок
+
+# Настройки безопасности (можно потом заменить)
+security:
+  user:
+    name: admin
+    password: admin
+    roles: ADMIN
+
+# Настройки сервера
+server:
+  port: 8080
+
+# JWT
+jwt:
+  secret: 6e6b2d4e7a1f5b8c9d3e7f2a1b4c8d9e6f7a2b1c4d5e6f7a8b9c0d1e2f3a4b5c
+  access-expiration: 900000
+  refresh-expiration: 604800000

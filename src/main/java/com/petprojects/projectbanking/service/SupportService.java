@@ -1,6 +1,7 @@
 package com.petprojects.projectbanking.service;
 
 import com.petprojects.projectbanking.dto.request.DtoCreateUser;
+import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
 import com.petprojects.projectbanking.dto.response.DtoListTransact;
 import com.petprojects.projectbanking.exception.AccountNotFoundException;
@@ -28,7 +29,7 @@ public class SupportService {
 
 
 
-    public User createUser(DtoCreateUser dto) {
+    public String createUser(DtoCreateUser dto) {
         User user = User.builder()
                 .firstname(dto.getFirstname().trim())
                 .secondname(dto.getSecondname().trim())
@@ -38,11 +39,15 @@ public class SupportService {
                 .build();
 
         userRepository.save(user);
-
         // создаём счёт только для USER
         accountService.createAccount(user);
 
-        return user;
+        DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
+        dtoCreatedPerson.setName(user.getFirstname());
+        dtoCreatedPerson.setNumber(user.getUserNumber());
+
+        return "Создан пользователь " + dtoCreatedPerson.getName() + " с номером аккаунта " + dtoCreatedPerson.getNumber();
+
     }
 
 

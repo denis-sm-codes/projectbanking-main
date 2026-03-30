@@ -1,6 +1,7 @@
 package com.petprojects.projectbanking.service;
 
 import com.petprojects.projectbanking.dto.request.DtoCreateSupport;
+import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
 import com.petprojects.projectbanking.model.*;
 import com.petprojects.projectbanking.repository.AccountRepository;
@@ -19,7 +20,7 @@ public class AdminService {
     private final AccountRepository accountRepository;
     private final AccountService accountService;
 
-    public User createSupport(DtoCreateSupport dto) {
+    public String createSupport(DtoCreateSupport dto) {
         User user = User.builder()
                 .firstname(dto.getFirstname().trim())
                 .secondname(dto.getSecondname().trim())
@@ -28,7 +29,11 @@ public class AdminService {
                 .enabled(true)
                 .build();
         userRepository.save(user);
-        return user;
+        DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
+        dtoCreatedPerson.setName(user.getFirstname());
+        dtoCreatedPerson.setNumber(user.getUserNumber());
+
+        return "Создан менеджер " + dtoCreatedPerson.getName() + " с номером аккаунта " + dtoCreatedPerson.getNumber();
     }
 
     public List<DtoListAccounts> getAllUsersForAdmin() {

@@ -1,79 +1,98 @@
 package com.petprojects.projectbanking.security;
 
+import com.petprojects.projectbanking.dto.response.DtoAuthResponse;
 import com.petprojects.projectbanking.model.RefreshToken;
+import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.RefreshTokenRepository;
-import com.petprojects.projectbanking.repository.UserRepository;
 import io.jsonwebtoken.*;
-import lombok.AllArgsConstructor;
-
+import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
-import java.time.ZoneId;
+import java.security.Key;
+import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Date;
 
 @Component
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Getter
-@Setter
 public class JwtUtil {
-    private UserRepository userRepository;
-    private RefreshTokenRepository refreshTokenRepository;
-    private final JwtProperties jwtProperties;
 
+    private final JwtProperties jwtProperties;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private Key signingKey;
+
+    @PostConstruct
+    public void init() {
+        // Безопасная инициализация ключа из свойств
+        if (jwtProperties.getSecret() == null || jwtProperties.getSecret().length() < 32) {
+            this.signingKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+        } else {
+            byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
+            this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+        }
+    }
+
+    // 1. Генерируем Access Token
     public String generateAccessToken(String userNumber, String role) {
         return Jwts.builder()
-                .claim("userNumber", userNumber)
+                .setSubject(userNumber)
                 .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessExpiration()))
-                .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecret())
+                .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    // 2. Генерируем Refresh Token и СРАЗУ сохраняем в БД
     public String generateRefreshToken(String userNumber) {
-        String refreshToken = Jwts.builder()
-                .claim("userNumber", userNumber)
+        String token = Jwts.builder()
+                .setSubject(userNumber)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshExpiration()))
-                .signWith(SignatureAlgorithm.HS256, jwtProperties.getSecret())
+                .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
 
+        // Чистим старые токены пользователя перед сохранением нового
         refreshTokenRepository.findByUserNumber(userNumber)
-                .ifPresent(old -> refreshTokenRepository.delete(old));
+                .ifPresent(refreshTokenRepository::delete);
 
-        RefreshToken refreshTokenNew = new RefreshToken();
-        refreshTokenNew.setToken(refreshToken);
-        refreshTokenNew.setUserNumber(userNumber);
+        RefreshToken refreshTokenEntity = new RefreshToken();
+        refreshTokenEntity.setToken(token);
+        refreshTokenEntity.setUserNumber(userNumber);
+        refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusNanos(jwtProperties.getRefreshExpiration() * 1_000_000));
+        refreshTokenEntity.setRevoked(false);
 
-        refreshTokenNew.setExpiryDate(Instant.ofEpochMilli(System.currentTimeMillis() + jwtProperties.getRefreshExpiration())
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime());
-
-        refreshTokenNew.setRevoked(false);
-        refreshTokenRepository.save(refreshTokenNew);
-
-        return refreshToken;
+        refreshTokenRepository.save(refreshTokenEntity);
+        return token;
     }
 
+    // 3. Удобный метод для получения полной пары токенов
+    public DtoAuthResponse generateFullAuthResponse(String userNumber, String role) {
+        return new DtoAuthResponse(
+                generateAccessToken(userNumber, role),
+                generateRefreshToken(userNumber)
+        );
+    }
+
+    // Валидация
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(jwtProperties.getSecret()).parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token);
             return true;
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
     public Claims getClaims(String token) {
-        return Jwts.parser().setSigningKey(jwtProperties.getSecret()).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token).getBody();
     }
 
     public String getUserNumber(String token) {
-        return getClaims(token).get("userNumber", String.class);
-    }
-    public String getRole(String token) {
-        return getClaims(token).get("role", String.class);
+        return getClaims(token).getSubject();
     }
 }

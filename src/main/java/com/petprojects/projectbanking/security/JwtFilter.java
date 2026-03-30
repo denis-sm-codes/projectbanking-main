@@ -25,15 +25,21 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        String path = request.getRequestURI();
+        // ✅ Пропускаем preflight (OPTIONS)
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        // Пропускаем Swagger UI и H2 console
+        // Swagger и H2 console
+        String path = request.getRequestURI();
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/h2-console")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-
+        // JWT аутентификация
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -41,9 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 Claims claims = jwtUtil.getClaims(token);
                 String userNumber = claims.getSubject();
                 String role = claims.get("role", String.class);
-
                 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
-
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(userNumber, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
@@ -53,6 +57,7 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
         }
+
         filterChain.doFilter(request, response);
     }
 }

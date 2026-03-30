@@ -3,6 +3,7 @@ package com.petprojects.projectbanking.service;
 import com.petprojects.projectbanking.dto.request.DtoLogin;
 import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.UserRepository;
+import com.petprojects.projectbanking.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,19 +12,13 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final JwtService jwtService;
+    private final JwtUtil jwtUtil;
 
-    /**
-     * Логин пользователя по userNumber
-     * @param dto Данные для логина (userNumber)
-     * @return JWT токен
-     */
     public String login(DtoLogin dto) {
-        // Находим пользователя по userNumber
+
         User user = userRepository.findByUserNumber(dto.getUserNumber())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
-        // Генерируем JWT токен
-        return jwtService.generateToken(user.getUserNumber(), user.getRole().name());
+        return jwtUtil.generateAccessToken(user.getUserNumber(), user.getRole().name());
     }
 }

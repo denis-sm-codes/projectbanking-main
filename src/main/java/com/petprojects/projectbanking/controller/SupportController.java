@@ -4,8 +4,10 @@ import com.petprojects.projectbanking.dto.request.DtoCreateSupport;
 import com.petprojects.projectbanking.dto.request.DtoCreateUser;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
 import com.petprojects.projectbanking.dto.response.DtoListTransact;
+import com.petprojects.projectbanking.service.AuthService;
 import com.petprojects.projectbanking.service.SupportService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,6 +19,7 @@ import java.util.List;
 public class SupportController {
 
     private final SupportService supportService;
+    private final AuthService authService;
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('SUPPORT')")
@@ -41,5 +44,12 @@ public class SupportController {
     @PreAuthorize("hasRole('SUPPORT')")
     public void disableUser(@PathVariable String userNumber) {
         supportService.disableUser(userNumber);
+    }
+
+    @PostMapping("/logout")
+    @PreAuthorize("hasRole('SUPPORT')")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+        authService.logout(token);
+        return ResponseEntity.ok().build();
     }
 }

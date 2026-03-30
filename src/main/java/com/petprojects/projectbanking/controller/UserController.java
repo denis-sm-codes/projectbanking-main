@@ -3,6 +3,7 @@ package com.petprojects.projectbanking.controller;
 import com.petprojects.projectbanking.dto.request.DtoTransaction;
 import com.petprojects.projectbanking.dto.response.DtoUserProfile;
 import com.petprojects.projectbanking.dto.response.DtoPersonalTransact;
+import com.petprojects.projectbanking.service.AuthService;
 import com.petprojects.projectbanking.service.TransactionService;
 import com.petprojects.projectbanking.service.UserService;
 import jakarta.validation.Valid;
@@ -20,6 +21,7 @@ public class UserController {
 
     private final UserService userService;
     private final TransactionService transactionService;
+    private final AuthService authService;
 
     @GetMapping(value = "/profile", produces = "application/json")
     @PreAuthorize("hasRole('USER')")
@@ -38,5 +40,12 @@ public class UserController {
     public ResponseEntity<String> newTransaction(@RequestBody @Valid DtoTransaction dto) {
         transactionService.makeTransaction(dto);
         return ResponseEntity.ok("Перевод прошёл успешно");
+    }
+
+    @PostMapping("/logout")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+        authService.logout(token);
+        return ResponseEntity.ok().build();
     }
 }

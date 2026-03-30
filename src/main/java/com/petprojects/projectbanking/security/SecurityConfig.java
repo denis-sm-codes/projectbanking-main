@@ -1,25 +1,21 @@
 package com.petprojects.projectbanking.security;
 
 import lombok.AllArgsConstructor;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.web.filter.CorsFilter;
-import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
 @Configuration
+@EnableWebSecurity
 @AllArgsConstructor
 public class SecurityConfig {
 
@@ -28,46 +24,46 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults()) // <- Spring автоматически берёт CorsConfigurationSource
-                .csrf(csrf -> csrf.disable())
+                // 1. Включаем CORS с нашей конфигурацией
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
+                // 2. Отключаем CSRF (для REST API с JWT это стандарт)
+                .csrf(AbstractHttpConfigurer::disable)
+
+                // 3. Настраиваем правила доступа
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/h2-console/**").permitAll()
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll() // Разрешаем логин всем
                         .requestMatchers("/admin/**").hasRole("ADMIN")
                         .requestMatchers("/support/**").hasAnyRole("SUPPORT", "ADMIN")
                         .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN", "SUPPORT")
                         .anyRequest().authenticated()
                 )
+
+                // 4. Добавляем наш JWT фильтр перед стандартным
                 .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
     @Bean
-    public FilterRegistrationBean<CorsFilter> corsFilterRegistration() {
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+
+        // Разрешаем запросы с любого адреса (включая локальные файлы)
+        config.setAllowedOriginPatterns(List.of("*"));
+
+        // Разрешаем все стандартные методы
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Разрешаем любые заголовки (Authorization, Content-Type и т.д.)
         config.setAllowedHeaders(List.of("*"));
-        config.setAllowCredentials(true);
+
+        // ВАЖНО: При использовании "*" для OriginPatterns, AllowCredentials должно быть false
+        config.setAllowCredentials(false);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
-        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
-        bean.setOrder(0); // Важно, чтобы стоял выше Spring Security
-        return bean;
-    }
-
-    @Bean
-    public WebMvcConfigurer corsConfigurer() {
-        return new WebMvcConfigurer() {
-            @Override
-            public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**")
-                        .allowedOrigins("*")
-                        .allowedMethods("*");
-            }
-        };
+        return source;
     }
 }

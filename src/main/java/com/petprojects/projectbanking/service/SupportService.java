@@ -27,9 +27,7 @@ public class SupportService {
     private final UserRepository userRepository;
     private final AccountService accountService;
 
-
-
-    public String createUser(DtoCreateUser dto) {
+    public DtoCreatedPerson createUser(DtoCreateUser dto) {
         User user = User.builder()
                 .firstname(dto.getFirstname().trim())
                 .secondname(dto.getSecondname().trim())
@@ -37,21 +35,18 @@ public class SupportService {
                 .role(Role.USER)
                 .enabled(true)
                 .build();
-
         userRepository.save(user);
-        // создаём счёт только для USER
-        accountService.createAccount(user);
+
+        Account account = accountService.createAccount(user);
 
         DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
-        dtoCreatedPerson.setName(user.getFirstname());
-        dtoCreatedPerson.setNumber(user.getUserNumber());
+        dtoCreatedPerson.setFirstName(user.getFirstname());
+        dtoCreatedPerson.setSecondName(user.getSecondname());
+        dtoCreatedPerson.setUserNumber(user.getUserNumber());
+        dtoCreatedPerson.setCountNumber(account.getCountNumber());
 
-        return "Создан пользователь " + dtoCreatedPerson.getName() + " с номером аккаунта " + dtoCreatedPerson.getNumber();
-
+        return dtoCreatedPerson;
     }
-
-
-
 
     public List<DtoListAccounts> getAllUsersForSupport() {
         return userRepository.findAll().stream()
@@ -73,13 +68,10 @@ public class SupportService {
                         dto.setCountNumber(null);
                         dto.setBalance(null);
                     }
-
                     return dto;
                 })
                 .toList();
     }
-
-
 
     public List<DtoListTransact> getTransactionsByAccountNumber(String accountNumber) {
         Account account = accountRepository.findByCountNumber(accountNumber)
@@ -91,18 +83,6 @@ public class SupportService {
     }
 
     // --- Вспомогательные методы для маппинга ---
-
-    private DtoListAccounts mapToDto(Account account) {
-        DtoListAccounts dto = new DtoListAccounts();
-        dto.setFirstname(account.getUser().getFirstname());
-        dto.setSecondname(account.getUser().getSecondname());
-        dto.setUserNumber(account.getCountNumber());
-        dto.setBalance(account.getBalance());
-        dto.setActive(account.getStatus() == com.petprojects.projectbanking.model.AccountStatus.ACTIVE);
-        dto.setCreatedAt(account.getCreatedAt());
-        return dto;
-    }
-
     private DtoListTransact mapTransactionToDto(Transaction transaction) {
         DtoListTransact dto = new DtoListTransact();
         dto.setSenderAccountNumber(transaction.getSenderAccount() != null
@@ -111,12 +91,5 @@ public class SupportService {
         dto.setAmount(transaction.getAmount());
         dto.setCreatedAt(transaction.getTransactionDate());
         return dto;
-    }
-
-    public void disableUser(String userNumber) {
-        User user = userRepository.findByUserNumber(userNumber)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setEnabled(false);
-        userRepository.save(user);
     }
 }

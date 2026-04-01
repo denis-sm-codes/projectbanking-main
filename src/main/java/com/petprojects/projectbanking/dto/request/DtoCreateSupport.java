@@ -12,11 +12,11 @@ public class DtoCreateSupport {
 
     @NotBlank(message = "Имя обязательно")
     @Size(max = 50, message = "Имя не должно превышать 50 символов")
-    private String firstname;
+    private String firstName;
 
     @NotBlank(message = "Фамилия обязательна")
     @Size(max = 50, message = "Фамилия не должна превышать 50 символов")
-    private String secondname;
+    private String secondName;
 
     @NotBlank(message = "Email обязателен")
     @Email(message = "Некорректный email")

@@ -2,6 +2,7 @@ package com.petprojects.projectbanking.controller;
 
 import com.petprojects.projectbanking.dto.request.DtoCreateSupport;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
+import com.petprojects.projectbanking.service.AccountService;
 import com.petprojects.projectbanking.service.AdminService;
 import com.petprojects.projectbanking.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -18,11 +19,13 @@ public class AdminController {
 
     private final AdminService adminService;
     private final AuthService authService;
+    private final AccountService accountService;
 
     @PostMapping("/create-user")
     @PreAuthorize("hasRole('ADMIN')")
-    public void createSupport(@RequestBody DtoCreateSupport dto) {
+    public ResponseEntity<Void> createSupport(@RequestBody DtoCreateSupport dto) {
         adminService.createSupport(dto);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/accounts")
@@ -31,15 +34,23 @@ public class AdminController {
         return adminService.getAllUsersForAdmin();
     }
 
-    @DeleteMapping("/delete-user/{userNumber}")
+    @PatchMapping("/users/{userNumber}/disable")
     @PreAuthorize("hasRole('ADMIN')")
-    public void disableUser(@PathVariable String userNumber) {
-        adminService.disableUser(userNumber);
+    public ResponseEntity<Void> disableUser(@PathVariable String userNumber) {
+        accountService.disableUser(userNumber);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/users/{userNumber}/enable")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> enableUser(@PathVariable String userNumber) {
+        accountService.enableUser(userNumber);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/logout")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
         return ResponseEntity.ok().build();
     }

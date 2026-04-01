@@ -1,5 +1,6 @@
 package com.petprojects.projectbanking.dto.response;
 
+import com.petprojects.projectbanking.model.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,13 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DtoCreatedPerson {
 
-    private String name;
+    private String firstName;
 
-    private String number;
+    private String secondName;
 
+    private String countNumber;
+
+    private String userNumber;
+
+    private Enum<Role> role;
 }

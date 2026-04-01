@@ -17,10 +17,4 @@ public class DtoPersonalTransact {
     private BigDecimal amount;
 
     private LocalDateTime createdAt;
-
-    @Override
-    public String toString() {
-        return "Пользователь " + senderAccountNumber + " отправил(ла) пользователю "
-                + receiverAccountNumber + " " + amount + " EURO" + "  время " + createdAt;
-    }
 }

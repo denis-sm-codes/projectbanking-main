@@ -2,7 +2,6 @@ package com.petprojects.projectbanking.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
@@ -11,26 +10,18 @@ import java.time.LocalDateTime;
 public class DtoListAccounts {
 
     private String firstname;
+
     private String secondname;
 
-    private String userNumber;    // 7-значный
-    private String countNumber;   // LVxxHABAxxxxxx (для аккаунтов ROLE_USER)
+    private String userNumber;
 
-    private BigDecimal balance;   // null для SUPORT/ADMIN
+    private String countNumber;
 
-    private boolean active;       // enabled
+    private BigDecimal balance;
+
+    private boolean active;
 
     private LocalDateTime createdAt;
 
-    private String role;          // ADMIN / SUPPORT / USER
-
-    private static String activity(boolean check){
-        return check ? "Активен" : "Не Активен";
-    }
-
-    @Override
-    public String toString() {
-        return "Пользователь: " + firstname + " " + secondname + "  " + userNumber
-                + "  Статус: " + activity(active) + "   время создания: " + createdAt;
-    }
+    private String role;
 }

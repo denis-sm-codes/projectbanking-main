@@ -1,6 +1,7 @@
 package com.petprojects.projectbanking.repository;
 
 import com.petprojects.projectbanking.model.RefreshToken;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 
@@ -14,5 +15,6 @@ public interface RefreshTokenRepository
     Optional<RefreshToken> findByUserNumber(String userNumber);
 
     @Modifying
+    @Transactional
     void deleteByUserNumber(String userNumber);
 }

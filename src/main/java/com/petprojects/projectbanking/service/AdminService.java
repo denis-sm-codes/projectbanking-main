@@ -10,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,20 +19,22 @@ public class AdminService {
     private final AccountRepository accountRepository;
     private final AccountService accountService;
 
-    public String createSupport(DtoCreateSupport dto) {
+    public DtoCreatedPerson createSupport(DtoCreateSupport dto) {
         User user = User.builder()
-                .firstname(dto.getFirstname().trim())
-                .secondname(dto.getSecondname().trim())
+                .firstname(dto.getFirstName().trim())
+                .secondname(dto.getSecondName().trim())
                 .email(dto.getEmail().trim())
                 .role(Role.SUPPORT)
                 .enabled(true)
                 .build();
         userRepository.save(user);
-        DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
-        dtoCreatedPerson.setName(user.getFirstname());
-        dtoCreatedPerson.setNumber(user.getUserNumber());
 
-        return "Создан менеджер " + dtoCreatedPerson.getName() + " с номером аккаунта " + dtoCreatedPerson.getNumber();
+        DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
+        dtoCreatedPerson.setFirstName(dto.getFirstName());
+        dtoCreatedPerson.setSecondName(dto.getSecondName());
+        dtoCreatedPerson.setUserNumber(user.getUserNumber());
+
+        return dtoCreatedPerson;
     }
 
     public List<DtoListAccounts> getAllUsersForAdmin() {
@@ -54,19 +55,7 @@ public class AdminService {
                 dto.setCountNumber(null);
                 dto.setBalance(null);
             }
-
             return dto;
         }).toList();
-    }
-
-    public void changeAccountStatus(String accountNumber, AccountStatus status) {
-        accountService.changeStatus(accountNumber, status);
-    }
-
-    public void disableUser(String userNumber) {
-        User user = userRepository.findByUserNumber(userNumber)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setEnabled(false);
-        userRepository.save(user);
     }
 }

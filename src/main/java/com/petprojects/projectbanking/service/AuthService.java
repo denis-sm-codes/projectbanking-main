@@ -18,8 +18,8 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
 
+    @Transactional
     public DtoAuthResponse login(DtoLogin dto) {
-
         User user = userRepository.findByUserNumber(dto.getUserNumber())
                 .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
@@ -28,16 +28,8 @@ public class AuthService {
 
     @Transactional
     public void logout(String token) {
-        // Отрезаем "Bearer ", если он пришел в заголовке
         String jwt = token.startsWith("Bearer ") ? token.substring(7) : token;
-
-        // Извлекаем номер пользователя через JwtUtil
-        // (Проверь, как называется метод в твоем JwtUtil: getUsername или extractUsername)
         String userNumber = jwtUtil.getUserNumber(jwt);
-
-        // Удаляем рефреш-токен из базы, чтобы сессия закрылась
         refreshTokenRepository.deleteByUserNumber(userNumber);
     }
-
-
 }

@@ -27,12 +27,11 @@ public class JwtUtil {
 
     @PostConstruct
     public void init() {
-        // Безопасная инициализация ключа из свойств
-        if (jwtProperties.getSecret() == null || jwtProperties.getSecret().length() < 32) {
+        String secret = jwtProperties.getSecret();
+        if (secret == null || secret.length() < 32) {
             this.signingKey = Keys.secretKeyFor(SignatureAlgorithm.HS256);
         } else {
-            byte[] keyBytes = Base64.getDecoder().decode(jwtProperties.getSecret());
-            this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+            this.signingKey = Keys.hmacShaKeyFor(secret.getBytes());
         }
     }
 

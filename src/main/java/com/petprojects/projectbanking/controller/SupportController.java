@@ -1,9 +1,9 @@
 package com.petprojects.projectbanking.controller;
 
-import com.petprojects.projectbanking.dto.request.DtoCreateSupport;
 import com.petprojects.projectbanking.dto.request.DtoCreateUser;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
 import com.petprojects.projectbanking.dto.response.DtoListTransact;
+import com.petprojects.projectbanking.service.AccountService;
 import com.petprojects.projectbanking.service.AuthService;
 import com.petprojects.projectbanking.service.SupportService;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +20,10 @@ public class SupportController {
 
     private final SupportService supportService;
     private final AuthService authService;
+    private final AccountService accountService;
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('SUPPORT')")
-    @SuppressWarnings("unused")
     public void createUser(@RequestBody DtoCreateUser dto) {
         supportService.createUser(dto);
     }
@@ -40,15 +40,23 @@ public class SupportController {
         return supportService.getTransactionsByAccountNumber(accountNumber);
     }
 
-    @DeleteMapping("/delete-user/{userNumber}")
+    @PatchMapping("/users/{userNumber}/disable")
     @PreAuthorize("hasRole('SUPPORT')")
-    public void disableUser(@PathVariable String userNumber) {
-        supportService.disableUser(userNumber);
+    public ResponseEntity<Void> disableUser(@PathVariable String userNumber) {
+    accountService.disableUser(userNumber);
+    return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/users/{userNumber}/enable")
+    @PreAuthorize("hasRole('SUPPORT')")
+    public ResponseEntity<Void> enableUser(@PathVariable String userNumber) {
+        accountService.enableUser(userNumber);
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/logout")
     @PreAuthorize("hasRole('SUPPORT')")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+    public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);
         return ResponseEntity.ok().build();
     }

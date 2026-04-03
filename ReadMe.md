@@ -1,14 +1,4 @@
-Архитектура Проекта
 com.petprojects.projectbanking
-│
-├─ controller      # REST контроллеры (Auth, User, Admin, Transaction)
-├─ service         # бизнес-логика
-├─ repository      # JPA репозитории
-├─ model           # сущности (User, Role, Account, Transaction)
-├─ security        # конфигурация Spring Security, JWT или Session, DateCondit
-├─ dto             # DTO для запросов/ответов
-└─ exception       # кастомные исключения
-
 
 Для Администратора(ADMIN):
 Примечание. Администратор это один Аккаунт для одного главного

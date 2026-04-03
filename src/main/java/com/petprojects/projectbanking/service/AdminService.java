@@ -3,6 +3,7 @@ package com.petprojects.projectbanking.service;
 import com.petprojects.projectbanking.dto.request.DtoCreateSupport;
 import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
+import com.petprojects.projectbanking.exception.UserNotFoundException;
 import com.petprojects.projectbanking.model.*;
 import com.petprojects.projectbanking.repository.AccountRepository;
 import com.petprojects.projectbanking.repository.UserRepository;
@@ -32,30 +33,35 @@ public class AdminService {
         DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
         dtoCreatedPerson.setFirstName(dto.getFirstName());
         dtoCreatedPerson.setSecondName(dto.getSecondName());
+        dtoCreatedPerson.setEmail(dto.getEmail());
+        dtoCreatedPerson.setRole(user.getRole());
         dtoCreatedPerson.setUserNumber(user.getUserNumber());
 
         return dtoCreatedPerson;
     }
 
     public List<DtoListAccounts> getAllUsersForAdmin() {
-        return userRepository.findAll().stream().map(user -> {
-            DtoListAccounts dto = new DtoListAccounts();
-            dto.setFirstname(user.getFirstname());
-            dto.setSecondname(user.getSecondname());
-            dto.setUserNumber(user.getUserNumber());
-            dto.setRole(user.getRole().name());
-            dto.setActive(user.isEnabled());
-            dto.setCreatedAt(user.getCreatedAt());
+        return userRepository.findAll().stream().filter(user ->
+            user.getRole() == Role.ADMIN || user.getRole() == Role.SUPPORT || user.getRole() == Role.USER)
+                .map(user -> {
+                    DtoListAccounts dto = new DtoListAccounts();
+                    dto.setFirstname(user.getFirstname());
+                    dto.setSecondname(user.getSecondname());
+                    dto.setUserNumber(user.getUserNumber());
+                    dto.setRole(user.getRole().name());
+                    dto.setActive(user.isEnabled());
+                    dto.setCreatedAt(user.getCreatedAt());
 
-            Account account = user.getAccount();
-            if (account != null && user.getRole() == Role.USER) {
-                dto.setCountNumber(account.getCountNumber());
-                dto.setBalance(account.getBalance());
-            } else {
-                dto.setCountNumber(null);
-                dto.setBalance(null);
-            }
+                    Account account = user.getAccount();
+                    dto.setCountNumber((account != null && user.getRole() == Role.USER) ? account.getCountNumber() : null);
+                    dto.setBalance((account != null && user.getRole() == Role.USER) ? account.getBalance() : null);
             return dto;
         }).toList();
+    }
+
+    public void deleteSupport(String number){
+        User user = userRepository.findByUserNumber(number)
+                .orElseThrow(() -> new UserNotFoundException(number));
+        userRepository.delete(user);
     }
 }

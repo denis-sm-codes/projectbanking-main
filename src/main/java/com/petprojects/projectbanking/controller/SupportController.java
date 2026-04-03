@@ -1,6 +1,7 @@
 package com.petprojects.projectbanking.controller;
 
 import com.petprojects.projectbanking.dto.request.DtoCreateUser;
+import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
 import com.petprojects.projectbanking.dto.response.DtoListTransact;
 import com.petprojects.projectbanking.service.AccountService;
@@ -24,27 +25,27 @@ public class SupportController {
 
     @PostMapping("/create")
     @PreAuthorize("hasRole('SUPPORT')")
-    public void createUser(@RequestBody DtoCreateUser dto) {
-        supportService.createUser(dto);
+    public ResponseEntity<DtoCreatedPerson> createUser(@RequestBody DtoCreateUser dto) {
+        return ResponseEntity.ok(supportService.createUser(dto));
     }
 
     @GetMapping("/accounts")
     @PreAuthorize("hasRole('SUPPORT')")
-    public List<DtoListAccounts> getAllAccounts() {
-        return supportService.getAllUsersForSupport();
+    public ResponseEntity<List<DtoListAccounts>> getAllUsers() {
+        return ResponseEntity.ok(supportService.getAllUsersForSupport());
     }
 
     @GetMapping("/transactions/{accountNumber}")
     @PreAuthorize("hasRole('SUPPORT')")
-    public List<DtoListTransact> getTransactions(@PathVariable String accountNumber) {
-        return supportService.getTransactionsByAccountNumber(accountNumber);
+    public ResponseEntity<List<DtoListTransact>> getTransactions(@PathVariable String accountNumber) {
+        return ResponseEntity.ok(supportService.getTransactionsByAccountNumber(accountNumber));
     }
 
     @PatchMapping("/users/{userNumber}/disable")
     @PreAuthorize("hasRole('SUPPORT')")
     public ResponseEntity<Void> disableUser(@PathVariable String userNumber) {
     accountService.disableUser(userNumber);
-    return ResponseEntity.ok().build();
+        return ResponseEntity.ok().build();
     }
 
     @PatchMapping("/users/{userNumber}/enable")

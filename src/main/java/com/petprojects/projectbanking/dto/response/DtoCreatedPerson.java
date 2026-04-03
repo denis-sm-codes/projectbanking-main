@@ -20,5 +20,7 @@ public class DtoCreatedPerson {
 
     private String userNumber;
 
+    private String email;
+
     private Enum<Role> role;
 }

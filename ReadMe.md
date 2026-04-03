@@ -1,17 +1,3 @@
-package com.petprojects.projectbanking;
-
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-@SpringBootApplication
-public class ProjectbankingApplication {
-
-	public static void main(String[] args) {  //http://localhost:8080/swagger-ui/index.html
-		SpringApplication.run(ProjectbankingApplication.class, args);
-	}
-}
-
-/*
 Архитектура Проекта
 com.petprojects.projectbanking
 │
@@ -47,7 +33,7 @@ com.petprojects.projectbanking
 По номеру пользователя, менеджер получает доступ к информации
 - Имя, Фамилия, Баланс, Транзакции(Кто и кому прислал и отправил сколько денег и точное время и дата транзакций)
 - Точное время и дата создания аккаунта
-7.Просмотр данных Акакунта(Статус(Менеджер), Имя, Фамилия, Номер счёта)
+  7.Просмотр данных Акакунта(Статус(Менеджер), Имя, Фамилия, Номер счёта)
 
 Для Пользователя(USER):
 1.Просмотр баланса
@@ -110,5 +96,3 @@ USER
 Наличие счёта и                   Нет                               Нет                               Да
 баланса (amount)
 ------------------------------------------------------------------------------------------------------------------------
-
-*/

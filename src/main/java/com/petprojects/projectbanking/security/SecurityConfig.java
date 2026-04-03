@@ -24,25 +24,16 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Включаем CORS с нашей конфигурацией
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
-                // 2. Отключаем CSRF (для REST API с JWT это стандарт)
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // 3. Настраиваем правила доступа
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/h2-console/**").permitAll()
-                        .requestMatchers("/auth/**").permitAll() // Разрешаем логин всем
+                        .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/support/**").hasAnyRole("SUPPORT", "ADMIN")
-                        .requestMatchers("/user/**").hasAnyRole("USER", "ADMIN", "SUPPORT")
+                        .requestMatchers("/support/**").hasAnyRole("SUPPORT")
+                        .requestMatchers("/user/**").hasAnyRole("USER")
                         .anyRequest().authenticated()
-                )
-
-                // 4. Добавляем наш JWT фильтр перед стандартным
-                .addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
-
+                ).addFilterBefore(new JwtFilter(jwtUtil), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 

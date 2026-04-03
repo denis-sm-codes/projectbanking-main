@@ -1,6 +1,7 @@
 package com.petprojects.projectbanking.controller;
 
 import com.petprojects.projectbanking.dto.request.DtoCreateSupport;
+import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
 import com.petprojects.projectbanking.service.AccountService;
 import com.petprojects.projectbanking.service.AdminService;
@@ -21,14 +22,13 @@ public class AdminController {
     private final AuthService authService;
     private final AccountService accountService;
 
-    @PostMapping("/create-user")
+    @PostMapping("/create-user/admin")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> createSupport(@RequestBody DtoCreateSupport dto) {
-        adminService.createSupport(dto);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<DtoCreatedPerson> createSupport(@RequestBody DtoCreateSupport dto) {
+        return ResponseEntity.ok(adminService.createSupport(dto));
     }
 
-    @GetMapping("/accounts")
+    @GetMapping("/accounts/for_admin")
     @PreAuthorize("hasRole('ADMIN')")
     public List<DtoListAccounts> getAllAccounts() {
         return adminService.getAllUsersForAdmin();
@@ -48,7 +48,14 @@ public class AdminController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/logout")
+    @DeleteMapping("/users/{number}/delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteSupport(@PathVariable String number){
+        adminService.deleteSupport(number);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/logout/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> logout(@RequestHeader("Authorization") String token) {
         authService.logout(token);

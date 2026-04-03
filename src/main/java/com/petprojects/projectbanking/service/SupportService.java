@@ -42,6 +42,8 @@ public class SupportService {
         DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
         dtoCreatedPerson.setFirstName(user.getFirstname());
         dtoCreatedPerson.setSecondName(user.getSecondname());
+        dtoCreatedPerson.setEmail(dto.getEmail());
+        dtoCreatedPerson.setRole(user.getRole());
         dtoCreatedPerson.setUserNumber(user.getUserNumber());
         dtoCreatedPerson.setCountNumber(account.getCountNumber());
 
@@ -50,7 +52,7 @@ public class SupportService {
 
     public List<DtoListAccounts> getAllUsersForSupport() {
         return userRepository.findAll().stream()
-                .filter(user -> user.getRole() == Role.USER)  // только пользователи USER
+                .filter(user -> user.getRole() == Role.USER)
                 .map(user -> {
                     DtoListAccounts dto = new DtoListAccounts();
                     dto.setFirstname(user.getFirstname());
@@ -61,13 +63,9 @@ public class SupportService {
                     dto.setCreatedAt(user.getCreatedAt());
 
                     Account account = user.getAccount();
-                    if (account != null) {
-                        dto.setCountNumber(account.getCountNumber());
-                        dto.setBalance(account.getBalance());
-                    } else {
-                        dto.setCountNumber(null);
-                        dto.setBalance(null);
-                    }
+                    dto.setCountNumber((account != null) ? account.getCountNumber() : null);
+                    dto.setBalance((account != null) ? account.getBalance() : null);
+
                     return dto;
                 })
                 .toList();

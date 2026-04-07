@@ -76,7 +76,7 @@ public class SupportService {
         Account account = accountRepository.findByCountNumber(accountNumber)
                 .orElseThrow(() -> new AccountNotFoundException(accountNumber));
 
-        List<Transaction> transactions = transactionRepository.findBySenderAccountOrReceiverAccount(account, account);
+        List<Transaction> transactions = transactionRepository.findBySenderAccountOrReceiverAccount(account);
 
         return transactions.stream().map(this::mapTransactionToDto).collect(Collectors.toList());
     }

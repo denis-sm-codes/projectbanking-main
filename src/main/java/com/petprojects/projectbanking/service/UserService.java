@@ -61,7 +61,7 @@ public class UserService {
         }
 
         List<Transaction> transactions =
-                transactionRepository.findBySenderAccountOrReceiverAccount(account, account);
+                transactionRepository.findBySenderAccountOrReceiverAccount(account);
 
         return transactions.stream()
                 .map(this::mapTransactionToDto)

@@ -2,7 +2,6 @@ package com.petprojects.projectbanking.security;
 
 import com.petprojects.projectbanking.dto.response.DtoAuthResponse;
 import com.petprojects.projectbanking.model.RefreshToken;
-import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.RefreshTokenRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.time.LocalDateTime;
-import java.util.Base64;
 import java.util.Date;
 
 @Component
@@ -35,49 +33,47 @@ public class JwtUtil {
         }
     }
 
-    // 1. Генерируем Access Token
-    public String generateAccessToken(String userNumber, String role) {
+    public String generateAccessToken(String userNumber, String role, String countNumber) {
         return Jwts.builder()
                 .setSubject(userNumber)
                 .claim("role", role)
+                .claim("countNumber", countNumber)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessExpiration()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // 2. Генерируем Refresh Token и СРАЗУ сохраняем в БД
-    public String generateRefreshToken(String userNumber) {
+    public String generateRefreshToken(String userNumber, String countNumber) {
         String token = Jwts.builder()
                 .setSubject(userNumber)
+                .claim("countNumber", countNumber)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshExpiration()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
 
-        // Чистим старые токены пользователя перед сохранением нового
         refreshTokenRepository.findByUserNumber(userNumber)
                 .ifPresent(refreshTokenRepository::delete);
 
         RefreshToken refreshTokenEntity = new RefreshToken();
         refreshTokenEntity.setToken(token);
         refreshTokenEntity.setUserNumber(userNumber);
-        refreshTokenEntity.setExpiryDate(LocalDateTime.now().plusNanos(jwtProperties.getRefreshExpiration() * 1_000_000));
+        refreshTokenEntity.setExpiryDate(LocalDateTime.now()
+                .plusNanos(jwtProperties.getRefreshExpiration() * 1_000_000));
         refreshTokenEntity.setRevoked(false);
 
         refreshTokenRepository.save(refreshTokenEntity);
         return token;
     }
 
-    // 3. Удобный метод для получения полной пары токенов
-    public DtoAuthResponse generateFullAuthResponse(String userNumber, String role) {
+    public DtoAuthResponse generateFullAuthResponse(String userNumber, String role, String countNumber) {
         return new DtoAuthResponse(
-                generateAccessToken(userNumber, role),
-                generateRefreshToken(userNumber)
+                generateAccessToken(userNumber, role, countNumber),
+                generateRefreshToken(userNumber, countNumber)
         );
     }
 
-    // Валидация
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder().setSigningKey(signingKey).build().parseClaimsJws(token);

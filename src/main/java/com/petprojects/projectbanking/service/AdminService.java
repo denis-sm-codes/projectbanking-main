@@ -3,6 +3,7 @@ package com.petprojects.projectbanking.service;
 import com.petprojects.projectbanking.dto.request.DtoCreateSupport;
 import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoListAccounts;
+import com.petprojects.projectbanking.exception.AccountNotFoundException;
 import com.petprojects.projectbanking.exception.UserNotFoundException;
 import com.petprojects.projectbanking.model.*;
 import com.petprojects.projectbanking.repository.AccountRepository;
@@ -52,7 +53,8 @@ public class AdminService {
                     dto.setActive(user.isEnabled());
                     dto.setCreatedAt(user.getCreatedAt());
 
-                    Account account = user.getAccount();
+                    Account account = user.getAccounts().stream().findFirst()
+                            .orElseThrow(() -> new AccountNotFoundException("not found"));
                     dto.setCountNumber((account != null && user.getRole() == Role.USER) ? account.getCountNumber() : null);
                     dto.setBalance((account != null && user.getRole() == Role.USER) ? account.getBalance() : null);
             return dto;

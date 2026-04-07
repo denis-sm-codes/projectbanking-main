@@ -2,6 +2,8 @@ package com.petprojects.projectbanking.service;
 
 import com.petprojects.projectbanking.dto.response.DtoUserProfile;
 import com.petprojects.projectbanking.dto.response.DtoPersonalTransact;
+import com.petprojects.projectbanking.exception.AccessDeniedException;
+import com.petprojects.projectbanking.exception.AccountNotFoundException;
 import com.petprojects.projectbanking.exception.UserNotFoundException;
 import com.petprojects.projectbanking.model.Account;
 import com.petprojects.projectbanking.model.Transaction;
@@ -24,7 +26,6 @@ public class UserService {
     private final TransactionRepository transactionRepository;
 
     public DtoUserProfile getUserProfile() {
-
         String userNumber = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
@@ -47,14 +48,17 @@ public class UserService {
         return dto;
     }
 
-    public List<DtoPersonalTransact> getUserTransactions() {
-
-        String userNumber = SecurityContextHolder.getContext()
+    public List<DtoPersonalTransact> getUserTransactions(String countNumber) {
+        String currentUserNumber = SecurityContextHolder.getContext()
                 .getAuthentication()
                 .getName();
 
-        Account account = accountRepository.findByUser_UserNumber(userNumber)
-                .orElseThrow(() -> new RuntimeException("Аккаунт пользователя не найден"));
+        Account account = accountRepository.findByCountNumber(countNumber)
+                .orElseThrow(() -> new AccountNotFoundException(countNumber));
+
+        if (!account.getUser().getUserNumber().equals(currentUserNumber)) {
+            throw new AccessDeniedException(currentUserNumber);
+        }
 
         List<Transaction> transactions =
                 transactionRepository.findBySenderAccountOrReceiverAccount(account, account);
@@ -64,7 +68,6 @@ public class UserService {
                 .toList();
     }
 
-    // --- Вспомогательный метод для маппинга транзакции ---
     private DtoPersonalTransact mapTransactionToDto(Transaction transaction) {
         DtoPersonalTransact dto = new DtoPersonalTransact();
         dto.setSenderAccountNumber(transaction.getSenderAccount() != null

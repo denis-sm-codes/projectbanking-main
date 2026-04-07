@@ -62,7 +62,8 @@ public class SupportService {
                     dto.setActive(user.isEnabled());
                     dto.setCreatedAt(user.getCreatedAt());
 
-                    Account account = user.getAccount();
+                    Account account = user.getAccounts().stream()
+                            .findFirst().orElseThrow(() -> new AccountNotFoundException("not found"));
                     dto.setCountNumber((account != null) ? account.getCountNumber() : null);
                     dto.setBalance((account != null) ? account.getBalance() : null);
 

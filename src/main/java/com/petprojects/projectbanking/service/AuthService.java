@@ -2,6 +2,9 @@ package com.petprojects.projectbanking.service;
 
 import com.petprojects.projectbanking.dto.request.DtoLogin;
 import com.petprojects.projectbanking.dto.response.DtoAuthResponse;
+import com.petprojects.projectbanking.exception.AccountNotFoundException;
+import com.petprojects.projectbanking.exception.UserNotFoundException;
+import com.petprojects.projectbanking.model.Account;
 import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.RefreshTokenRepository;
 import com.petprojects.projectbanking.repository.UserRepository;
@@ -21,9 +24,17 @@ public class AuthService {
     @Transactional
     public DtoAuthResponse login(DtoLogin dto) {
         User user = userRepository.findByUserNumber(dto.getUserNumber())
-                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+                .orElseThrow(() -> new UserNotFoundException(dto.getUserNumber()));
 
-        return jwtUtil.generateFullAuthResponse(user.getUserNumber(), user.getRole().name());
+        Account account = user.getAccounts().stream()
+                .findFirst()
+                .orElseThrow(() -> new AccountNotFoundException(user.getUserNumber()));
+
+        return jwtUtil.generateFullAuthResponse(
+                user.getUserNumber(),
+                user.getRole().name(),
+                account.getCountNumber()
+        );
     }
 
     @Transactional

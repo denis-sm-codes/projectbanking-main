@@ -72,7 +72,7 @@ Roadmap (Планы по развитию)
 
 Структура проекта
 
-   com.petprojects.projectbanking
+   com.petprojects.projectbanking 
    controller    # REST контроллеры (Auth, Accounts, Transactions)
    model         # JPA Сущности (User, Account, Transaction)
    repository    # Интерфейсы Spring Data JPA

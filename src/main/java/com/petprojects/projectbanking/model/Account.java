@@ -28,7 +28,7 @@ public class Account {
 
     @Column(nullable = false, precision = 12, scale = 2)
     @Builder.Default
-    private BigDecimal balance = BigDecimal.valueOf(1000);
+    private BigDecimal balance = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -1,5 +1,6 @@
 package com.petprojects.projectbanking.service;
 
+import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoUserProfile;
 import com.petprojects.projectbanking.dto.response.DtoPersonalTransact;
 import com.petprojects.projectbanking.exception.AccessDeniedException;
@@ -11,10 +12,12 @@ import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.AccountRepository;
 import com.petprojects.projectbanking.repository.TransactionRepository;
 import com.petprojects.projectbanking.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -24,6 +27,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final AccountService accountService;
 
     public DtoUserProfile getUserProfile() {
         String userNumber = SecurityContextHolder.getContext()
@@ -36,16 +40,31 @@ public class UserService {
         Account account = accountRepository.findByUser(user)
                 .orElseThrow(() -> new RuntimeException("Аккаунт не найден"));
 
-        DtoUserProfile dto = new DtoUserProfile();
-        dto.setFirstname(user.getFirstname());
-        dto.setSecondname(user.getSecondname());
-        dto.setUserNumber(user.getUserNumber());
-        dto.setRole(user.getRole().name());
-        dto.setBalance(account.getBalance());
-        dto.setAccountStatus(account.getStatus().name());
-        dto.setCreatedAt(user.getCreatedAt());
+        return DtoUserProfile.builder()
+                .firstname(user.getFirstname())
+                .secondname(user.getSecondname())
+                .userNumber(user.getUserNumber())
+                .role(user.getRole().name())
+                .balance(account.getBalance())
+                .accountStatus(account.getStatus().name())
+                .createdAt(user.getCreatedAt())
+                .build();
+    }
 
-        return dto;
+    @Transactional
+    public DtoCreatedPerson openAccount(String userNumber) {
+        User user = userRepository.findByUserNumber(userNumber)
+                .orElseThrow(() -> new UserNotFoundException(userNumber));
+
+        Account account = accountService.createAccount(user, BigDecimal.ZERO);
+
+        accountRepository.save(account);
+
+        return DtoCreatedPerson.builder()
+                .firstName(user.getFirstname())
+                .secondName(user.getSecondname())
+                .countNumber(account.getCountNumber())
+                .build();
     }
 
     public List<DtoPersonalTransact> getUserTransactions(String countNumber) {

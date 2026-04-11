@@ -29,7 +29,6 @@ public class TransactionService {
                 .getAuthentication()
                 .getName();
 
-
         Account sender = accountRepository.findByUser_UserNumber(userNumber)
                 .orElseThrow(() -> new AccountNotFoundException("Счет отправителя не найден"));
 
@@ -50,6 +49,7 @@ public class TransactionService {
         if (!receiver.getUser().getFirstname().equalsIgnoreCase(dto.getToAccountName().trim())) {
             throw new TransactionException("Ошибка в имени получателя");
         }
+
 
         sender.setBalance(sender.getBalance().subtract(amount));
         receiver.setBalance(receiver.getBalance().add(amount));

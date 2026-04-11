@@ -8,6 +8,7 @@ import com.petprojects.projectbanking.exception.UserNotFoundException;
 import com.petprojects.projectbanking.model.*;
 import com.petprojects.projectbanking.repository.AccountRepository;
 import com.petprojects.projectbanking.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ public class AdminService {
     private final AccountRepository accountRepository;
     private final AccountService accountService;
 
+    @Transactional
     public DtoCreatedPerson createSupport(DtoCreateSupport dto) {
         User user = User.builder()
                 .firstname(dto.getFirstName().trim())

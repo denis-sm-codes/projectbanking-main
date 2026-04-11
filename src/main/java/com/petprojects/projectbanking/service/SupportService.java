@@ -12,9 +12,11 @@ import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.AccountRepository;
 import com.petprojects.projectbanking.repository.TransactionRepository;
 import com.petprojects.projectbanking.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,6 +29,7 @@ public class SupportService {
     private final UserRepository userRepository;
     private final AccountService accountService;
 
+    @Transactional
     public DtoCreatedPerson createUser(DtoCreateUser dto) {
         User user = User.builder()
                 .firstname(dto.getFirstname().trim())
@@ -37,17 +40,16 @@ public class SupportService {
                 .build();
         userRepository.save(user);
 
-        Account account = accountService.createAccount(user);
+        Account account = accountService.createAccount(user, BigDecimal.valueOf(1000));
 
-        DtoCreatedPerson dtoCreatedPerson = new DtoCreatedPerson();
-        dtoCreatedPerson.setFirstName(user.getFirstname());
-        dtoCreatedPerson.setSecondName(user.getSecondname());
-        dtoCreatedPerson.setEmail(dto.getEmail());
-        dtoCreatedPerson.setRole(user.getRole());
-        dtoCreatedPerson.setUserNumber(user.getUserNumber());
-        dtoCreatedPerson.setCountNumber(account.getCountNumber());
-
-        return dtoCreatedPerson;
+        return DtoCreatedPerson.builder()
+                .firstName(user.getFirstname())
+                .secondName(user.getSecondname())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .userNumber(user.getUserNumber())
+                .countNumber(account.getCountNumber())
+                .build();
     }
 
     public List<DtoListAccounts> getAllUsersForSupport() {
@@ -81,7 +83,6 @@ public class SupportService {
         return transactions.stream().map(this::mapTransactionToDto).collect(Collectors.toList());
     }
 
-    // --- Вспомогательные методы для маппинга ---
     private DtoListTransact mapTransactionToDto(Transaction transaction) {
         DtoListTransact dto = new DtoListTransact();
         dto.setSenderAccountNumber(transaction.getSenderAccount() != null

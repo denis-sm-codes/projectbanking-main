@@ -2,7 +2,6 @@ package com.petprojects.projectbanking.repository;
 
 import com.petprojects.projectbanking.model.Transaction;
 import com.petprojects.projectbanking.model.Account;
-import com.petprojects.projectbanking.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

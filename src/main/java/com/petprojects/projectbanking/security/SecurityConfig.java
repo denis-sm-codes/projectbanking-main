@@ -41,16 +41,12 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
 
-        // Разрешаем запросы с любого адреса (включая локальные файлы)
         config.setAllowedOriginPatterns(List.of("*"));
 
-        // Разрешаем все стандартные методы
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
 
-        // Разрешаем любые заголовки (Authorization, Content-Type и т.д.)
         config.setAllowedHeaders(List.of("*"));
 
-        // ВАЖНО: При использовании "*" для OriginPatterns, AllowCredentials должно быть false
         config.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

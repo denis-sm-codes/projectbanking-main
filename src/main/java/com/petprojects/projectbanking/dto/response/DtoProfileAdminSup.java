@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 public class DtoProfileAdminSup {
 
     private String firstname;
+
     private String secondname;
 
     private String userNumber;

@@ -6,9 +6,11 @@ import com.petprojects.projectbanking.model.AccountStatus;
 import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.AccountRepository;
 import com.petprojects.projectbanking.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Random;
 
 @Service
@@ -18,10 +20,13 @@ public class AccountService {
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
 
-    public Account createAccount(User user) {
+    @Transactional
+    public Account createAccount(User user, BigDecimal initialBalance) {
         Account account = Account.builder()
                 .user(user)
                 .countNumber(generateAccountNumber())
+                .balance(initialBalance)
+                .status(AccountStatus.ACTIVE)
                 .build();
         return accountRepository.save(account);
     }

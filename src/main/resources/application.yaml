@@ -37,6 +37,8 @@ server:
 
 # JWT
 jwt:
-  secret: 6e6b2d4e7a1f5b8c9d3e7f2a1b4c8d9e6f7a2b1c4d5e6f7a8b9c0d1e2f3a4b5c
-  access-expiration: 900000
-  refresh-expiration: 604800000
+  # This key is for development purposes only.
+  # In production, it MUST be replaced via the JWT_SECRET environment variable.
+  secret: ${JWT_SECRET:dev_secret_key_for_local_testing_only_replace_in_production}
+  access-expiration: 15m
+  refresh-expiration: 7d

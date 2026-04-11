@@ -1,6 +1,7 @@
 package com.petprojects.projectbanking.controller;
 
 import com.petprojects.projectbanking.dto.request.DtoTransaction;
+import com.petprojects.projectbanking.dto.response.DtoCreatedPerson;
 import com.petprojects.projectbanking.dto.response.DtoUserProfile;
 import com.petprojects.projectbanking.dto.response.DtoPersonalTransact;
 
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -34,8 +36,8 @@ public class UserController {
 
     @GetMapping("/transactions")
     @PreAuthorize("hasRole('USER')")
-    public List<DtoPersonalTransact> getTransactions() {
-        return userService.getUserTransactions();
+    public List<DtoPersonalTransact> getTransactions(String countNumber) {
+        return userService.getUserTransactions(countNumber);
     }
 
     @PostMapping("/transactions")
@@ -43,6 +45,14 @@ public class UserController {
     public ResponseEntity<Void> newTransaction(@RequestBody @Valid DtoTransaction dto) {
         transactionService.makeTransaction(dto);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/open_new_count")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<DtoCreatedPerson> openNewCount(Principal principal) {
+        DtoCreatedPerson response = userService.openAccount(principal.getName());
+
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/logout")

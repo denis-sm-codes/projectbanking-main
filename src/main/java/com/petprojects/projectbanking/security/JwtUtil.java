@@ -39,7 +39,7 @@ public class JwtUtil {
                 .claim("role", role)
                 .claim("countNumber", countNumber)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessExpiration()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getAccessExpirationMillis()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -49,29 +49,29 @@ public class JwtUtil {
                 .setSubject(userNumber)
                 .claim("countNumber", countNumber)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshExpiration()))
+                .setExpiration(new Date(System.currentTimeMillis() + jwtProperties.getRefreshExpirationMillis()))
                 .signWith(signingKey, SignatureAlgorithm.HS256)
                 .compact();
 
         refreshTokenRepository.findByUserNumber(userNumber)
                 .ifPresent(refreshTokenRepository::delete);
 
-        RefreshToken refreshTokenEntity = new RefreshToken();
-        refreshTokenEntity.setToken(token);
-        refreshTokenEntity.setUserNumber(userNumber);
-        refreshTokenEntity.setExpiryDate(LocalDateTime.now()
-                .plusNanos(jwtProperties.getRefreshExpiration() * 1_000_000));
-        refreshTokenEntity.setRevoked(false);
+        RefreshToken refreshTokenEntity = RefreshToken.builder()
+                .token(token)
+                .userNumber(userNumber)
+                .expiryDate(LocalDateTime.now().plus(jwtProperties.getRefreshExpiration()))
+                .revoked(false)
+                .build();
 
         refreshTokenRepository.save(refreshTokenEntity);
         return token;
     }
 
     public DtoAuthResponse generateFullAuthResponse(String userNumber, String role, String countNumber) {
-        return new DtoAuthResponse(
-                generateAccessToken(userNumber, role, countNumber),
-                generateRefreshToken(userNumber, countNumber)
-        );
+        return DtoAuthResponse.builder()
+                .accessToken(generateAccessToken(userNumber, role, countNumber))
+                .refreshToken(generateRefreshToken(userNumber, countNumber))
+                .build();
     }
 
     public boolean validateToken(String token) {
@@ -89,5 +89,9 @@ public class JwtUtil {
 
     public String getUserNumber(String token) {
         return getClaims(token).getSubject();
+    }
+
+    public long getRefreshExpirationTime() {
+        return jwtProperties.getRefreshExpirationMillis();
     }
 }

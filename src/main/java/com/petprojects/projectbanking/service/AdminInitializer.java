@@ -15,7 +15,6 @@ public class AdminInitializer {
 
     @PostConstruct
     public void initAdmin() {
-        // Проверяем, есть ли уже админ с email "admin@bank.com"
         boolean adminExists = userRepository.existsByEmail("admin@bank.com");
         if (!adminExists) {
             User admin = User.builder()
@@ -28,7 +27,7 @@ public class AdminInitializer {
                     .build();
 
             userRepository.save(admin);
-            System.out.println("✅ Admin user created: admin@bank.com / userNumber: 0000001");
+            System.out.println("Admin user created: admin@bank.com / userNumber: 0000001");
         }
     }
 }

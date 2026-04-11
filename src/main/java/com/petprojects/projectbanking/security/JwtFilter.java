@@ -25,21 +25,18 @@ public class JwtFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // ✅ Пропускаем preflight (OPTIONS)
         if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
             response.setStatus(HttpServletResponse.SC_OK);
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Swagger и H2 console
         String path = request.getRequestURI();
         if (path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs") || path.startsWith("/h2-console")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // JWT аутентификация
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
@@ -47,9 +44,11 @@ public class JwtFilter extends OncePerRequestFilter {
                 Claims claims = jwtUtil.getClaims(token);
                 String userNumber = claims.getSubject();
                 String role = claims.get("role", String.class);
+                String countNumber = claims.get("countNumber", String.class);
+                UserPrincipal principal = new UserPrincipal(userNumber, countNumber, role);
                 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
                 UsernamePasswordAuthenticationToken auth =
-                        new UsernamePasswordAuthenticationToken(userNumber, null, authorities);
+                        new UsernamePasswordAuthenticationToken(principal, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } else {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
@@ -57,7 +56,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 return;
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }

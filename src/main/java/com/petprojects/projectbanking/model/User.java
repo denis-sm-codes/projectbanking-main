@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.text.DecimalFormat;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,12 +37,12 @@ public class User {
         }
     }
 
-    // Отдельный статический метод для генерации 7-значного номера
     private static String generate() {
-        int min = 0_000_000; // минимальное 7-значное число (с ведущими нулями)
-        int max = 9_999_999; // максимальное 7-значное число
+        int min = 0_000_000;
+        int max = 9_999_999;
         int number = (int) (Math.random() * (max - min + 1) + min);
-        return String.format("%07d", number); // добавляем ведущие нули
+        DecimalFormat df = new DecimalFormat("0000000");
+        return df.format(number);
     }
 
     @NotBlank

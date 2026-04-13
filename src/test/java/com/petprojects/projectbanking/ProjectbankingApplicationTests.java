@@ -11,7 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-
 @SpringBootTest
 @AllArgsConstructor
 class ProjectbankingApplicationTests {
@@ -41,7 +40,4 @@ class ProjectbankingApplicationTests {
 		User user = userRepository.findByUserNumber("0000001").orElse(null);
 		assertNotNull(user);
 	}
-
-
-
 }

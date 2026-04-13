@@ -22,33 +22,33 @@ public class AdminController {
     private final AuthService authService;
     private final AccountService accountService;
 
-    @PostMapping("/create-user/admin")
+    @PostMapping("/support_create/admin")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<DtoCreatedPerson> createSupport(@RequestBody DtoCreateSupport dto) {
         return ResponseEntity.ok(adminService.createSupport(dto));
     }
 
-    @GetMapping("/accounts/for_admin")
+    @GetMapping("/accounts_get/for_admin")
     @PreAuthorize("hasRole('ADMIN')")
     public List<DtoListAccounts> getAllAccounts() {
         return adminService.getAllUsersForAdmin();
     }
 
-    @PatchMapping("/users/{userNumber}/disable")
+    @PatchMapping("/user_disable/{userNumber}/disable")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> disableUser(@PathVariable String userNumber) {
         accountService.disableUser(userNumber);
         return ResponseEntity.ok().build();
     }
 
-    @PatchMapping("/users/{userNumber}/enable")
+    @PatchMapping("/user_enable/{userNumber}/enable")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> enableUser(@PathVariable String userNumber) {
         accountService.enableUser(userNumber);
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/users/{number}/delete")
+    @DeleteMapping("/user_delete/{number}/delete")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteSupport(@PathVariable String number){
         adminService.deleteSupport(number);

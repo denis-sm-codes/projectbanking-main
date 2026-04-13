@@ -23,19 +23,19 @@ public class SupportController {
     private final AuthService authService;
     private final AccountService accountService;
 
-    @PostMapping("/create")
+    @PostMapping("/user_create")
     @PreAuthorize("hasRole('SUPPORT')")
     public ResponseEntity<DtoCreatedPerson> createUser(@RequestBody DtoCreateUser dto) {
         return ResponseEntity.ok(supportService.createUser(dto));
     }
 
-    @GetMapping("/accounts")
+    @GetMapping("/accounts_get")
     @PreAuthorize("hasRole('SUPPORT')")
     public ResponseEntity<List<DtoListAccounts>> getAllUsers() {
         return ResponseEntity.ok(supportService.getAllUsersForSupport());
     }
 
-    @GetMapping("/transactions/{accountNumber}")
+    @GetMapping("/transactions_get/{accountNumber}")
     @PreAuthorize("hasRole('SUPPORT')")
     public ResponseEntity<List<DtoListTransact>> getTransactions(@PathVariable String accountNumber) {
         return ResponseEntity.ok(supportService.getTransactionsByAccountNumber(accountNumber));

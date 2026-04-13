@@ -34,13 +34,13 @@ public class UserController {
         return userService.getUserProfile();
     }
 
-    @GetMapping("/transactions")
+    @GetMapping("/get_transactions")
     @PreAuthorize("hasRole('USER')")
     public List<DtoPersonalTransact> getTransactions(String countNumber) {
         return userService.getUserTransactions(countNumber);
     }
 
-    @PostMapping("/transactions")
+    @PostMapping("/new_transaction")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<Void> newTransaction(@RequestBody @Valid DtoTransaction dto) {
         transactionService.makeTransaction(dto);

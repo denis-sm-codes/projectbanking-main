@@ -12,6 +12,7 @@ import com.petprojects.projectbanking.model.User;
 import com.petprojects.projectbanking.repository.AccountRepository;
 import com.petprojects.projectbanking.repository.TransactionRepository;
 import com.petprojects.projectbanking.repository.UserRepository;
+import com.petprojects.projectbanking.security.UserPrincipal;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,10 +30,14 @@ public class UserService {
     private final TransactionRepository transactionRepository;
     private final AccountService accountService;
 
-    public DtoUserProfile getUserProfile() {
-        String userNumber = SecurityContextHolder.getContext()
+    private UserPrincipal getAuthenticatedPrincipal() {
+        return (UserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
-                .getName();
+                .getPrincipal();
+    }
+
+    public DtoUserProfile getUserProfile() {
+        String userNumber = getAuthenticatedPrincipal().userNumber();
 
         User user = userRepository.findByUserNumber(userNumber)
                 .orElseThrow(() -> new UserNotFoundException(userNumber));
@@ -68,15 +73,13 @@ public class UserService {
     }
 
     public List<DtoPersonalTransact> getUserTransactions(String countNumber) {
-        String currentUserNumber = SecurityContextHolder.getContext()
-                .getAuthentication()
-                .getName();
+        UserPrincipal principal = getAuthenticatedPrincipal();
 
         Account account = accountRepository.findByCountNumber(countNumber)
                 .orElseThrow(() -> new AccountNotFoundException(countNumber));
 
-        if (!account.getUser().getUserNumber().equals(currentUserNumber)) {
-            throw new AccessDeniedException(currentUserNumber);
+        if (!account.getUser().getUserNumber().equals(principal.userNumber())) {
+            throw new AccessDeniedException("Вы не имеете доступа к транзакциям этого счета");
         }
 
         List<Transaction> transactions =
@@ -88,12 +91,12 @@ public class UserService {
     }
 
     private DtoPersonalTransact mapTransactionToDto(Transaction transaction) {
-        DtoPersonalTransact dto = new DtoPersonalTransact();
-        dto.setSenderAccountNumber(transaction.getSenderAccount() != null
-                ? transaction.getSenderAccount().getCountNumber() : "SYSTEM");
-        dto.setReceiverAccountNumber(transaction.getReceiverAccount().getCountNumber());
-        dto.setAmount(transaction.getAmount());
-        dto.setCreatedAt(transaction.getTransactionDate());
-        return dto;
+        return DtoPersonalTransact.builder()
+                .senderAccountNumber(transaction.getSenderAccount() != null
+                        ? transaction.getSenderAccount().getCountNumber() : "SYSTEM")
+                .receiverAccountNumber(transaction.getReceiverAccount().getCountNumber())
+                .amount(transaction.getAmount())
+                .createdAt(transaction.getTransactionDate())
+                .build();
     }
 }

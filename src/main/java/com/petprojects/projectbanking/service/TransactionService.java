@@ -8,6 +8,7 @@ import com.petprojects.projectbanking.model.Account;
 import com.petprojects.projectbanking.model.Transaction;
 import com.petprojects.projectbanking.repository.AccountRepository;
 import com.petprojects.projectbanking.repository.TransactionRepository;
+import com.petprojects.projectbanking.security.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -24,16 +25,15 @@ public class TransactionService {
 
     @Transactional
     public DtoPersonalTransact makeTransaction(DtoTransaction dto) {
-
-        String userNumber = SecurityContextHolder.getContext()
+        UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext()
                 .getAuthentication()
-                .getName();
+                .getPrincipal();
 
-        Account sender = accountRepository.findByUser_UserNumber(userNumber)
-                .orElseThrow(() -> new AccountNotFoundException("Счет отправителя не найден"));
+        Account sender = accountRepository.findByCountNumber(principal.countNumber())
+                .orElseThrow(() -> new AccountNotFoundException("Ваш счет не найден"));
 
         Account receiver = accountRepository.findByCountNumber(dto.getToAccountNumber())
-                .orElseThrow(() -> new AccountNotFoundException(dto.getToAccountNumber()));
+                .orElseThrow(() -> new AccountNotFoundException("Счет получателя не найден: " + dto.getToAccountNumber()));
 
 
         if (sender.getStatus() != com.petprojects.projectbanking.model.AccountStatus.ACTIVE) {
@@ -65,12 +65,11 @@ public class TransactionService {
 
         transactionRepository.save(transaction);
 
-        DtoPersonalTransact response = new DtoPersonalTransact();
-        response.setSenderAccountNumber(sender.getCountNumber());
-        response.setReceiverAccountNumber(receiver.getCountNumber());
-        response.setAmount(amount);
-        response.setCreatedAt(transaction.getTransactionDate());
-
-        return response;
+        return DtoPersonalTransact.builder()
+                .senderAccountNumber(sender.getCountNumber())
+                .receiverAccountNumber(receiver.getCountNumber())
+                .amount(amount)
+                .createdAt(transaction.getTransactionDate())
+                .build();
     }
 }
